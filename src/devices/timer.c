@@ -19,11 +19,13 @@
 
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
+int thread_cnt=0;
 
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
 void Restart_Thread(struct thread *t, void *aux UNUSED);
+void sort_thread(struct thread *t, void *aux UNUSED);
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);
@@ -40,19 +42,43 @@ timer_init (void)
 }
 
 
+int priority_cnt=30;
+void sort_thread(struct thread *t, void *aux UNUSED){
+  if(t->status==THREAD_BLOCKED){
+    if(t->Sleep_time!=0)
+      t->Sleep_time--;
+    if((t->priority==PRI_DEFAULT && t->Sleep_time==0)||(t->priority==priority_cnt && t->Sleep_time==0 ))
+      {
+        thread_unblock(t);
+        priority_cnt--;
+      }
+
+
+}
+
+
+}
+
 
 
 void Restart_Thread(struct thread *t, void *aux UNUSED){
+  if(t->status==THREAD_BLOCKED){
 
-if(t->status==THREAD_BLOCKED){
-t->Sleep_time--;
-//printf("%s    %s\n",t->name,"blocked" );
-if(t->Sleep_time==0)
-thread_unblock(t);
+      t->Sleep_time--;
+    if( t->Sleep_time==0)
+      {
+        thread_unblock(t);
+
+      }
 
 
 }
+
+
 }
+
+
+
 /*printf("
 }
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -109,12 +135,14 @@ void
 timer_sleep (int64_t ticks)
 {
 if(ticks<=0)return;
+  //int64_t start = timer_ticks ();
   enum intr_level old_level;
 
   ASSERT (intr_get_level () == INTR_ON);
     old_level=intr_disable();
     thread_current()->Sleep_time=ticks;
     //printf("%s Is going to be blocked for %lld ticks\n",thread_current()->name,thread_current()->Sleep_time);
+    thread_cnt++;
     thread_block ();
 
   intr_set_level(old_level);
@@ -198,8 +226,11 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-
+  if(thread_current()->priority == PRI_DEFAULT)
   thread_foreach(Restart_Thread,0);
+  else
+  thread_foreach(sort_thread,0);
+
 
 
 
