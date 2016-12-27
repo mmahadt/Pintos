@@ -44,7 +44,7 @@ timer_init (void)
 
 int priority_cnt=30;
 void sort_thread(struct thread *t, void *aux UNUSED){
-  if(t->status==THREAD_BLOCKED){
+//  if(t->status==THREAD_BLOCKED){
     if(t->Sleep_time!=0)
       t->Sleep_time--;
     if((t->priority==PRI_DEFAULT && t->Sleep_time==0)||(t->priority==priority_cnt && t->Sleep_time==0 ))
@@ -54,7 +54,7 @@ void sort_thread(struct thread *t, void *aux UNUSED){
       }
 
 
-}
+//}
 
 
 }
@@ -62,7 +62,7 @@ void sort_thread(struct thread *t, void *aux UNUSED){
 
 
 void Restart_Thread(struct thread *t, void *aux UNUSED){
-  if(t->status==THREAD_BLOCKED){
+//  if(t->status==THREAD_BLOCKED){
 
       t->Sleep_time--;
     if( t->Sleep_time==0)
@@ -72,7 +72,7 @@ void Restart_Thread(struct thread *t, void *aux UNUSED){
       }
 
 
-}
+//}
 
 
 }
@@ -227,9 +227,9 @@ timer_interrupt (struct intr_frame *args UNUSED)
   ticks++;
   thread_tick ();
   if(thread_current()->priority == PRI_DEFAULT)
-  thread_foreach(Restart_Thread,0);
+  thread_foreachblocked(Restart_Thread,0);
   else
-  thread_foreach(sort_thread,0);
+  thread_foreachblocked(sort_thread,0);
 
 
 
